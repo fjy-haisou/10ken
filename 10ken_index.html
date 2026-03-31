@@ -1,0 +1,515 @@
+10ken
+
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>10-KEN 日常車両点検システム</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--mint:#4ECDC4;--mint-light:#A8EDEA;--mint-pale:#E8FAF9;--mint-dark:#2BB5AC;--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;--gray-700:#374151;--gray-900:#111827;--red:#FF6B6B;--shadow-sm:0 1px 3px #EEF2F7;--shadow-lg:0 12px 40px #EEF2F7,0 4px 16px #EEF2F7;--radius:16px;--radius-sm:10px;--radius-xs:6px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans JP',sans-serif;background:#EEF2F7;color:var(--gray-900);min-height:100vh;}
+#root{max-width:860px;margin:0 auto;padding:0 20px 60px;}
+.header{padding:24px 0 20px;display:flex;flex-direction:column;gap:10px;}
+.system-title{font-family:'DM Sans',sans-serif;font-size:clamp(13px,2.1vw,18px);font-weight:200;color:var(--mint-dark);letter-spacing:-0.01em;}
+.page-title{width:100%;padding:20px 28px 16px;border-radius:var(--radius-sm);background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4,#2BB5AC,#6EC6CA);background-size:400% 400%;animation:gradientShift 8s ease infinite;box-shadow:0 4px 20px rgba(78,205,196,0.35);display:flex;flex-direction:column;gap:12px;color:white;}
+@keyframes gradientShift{0%{background-position:0% 50%}25%{background-position:100% 50%}50%{background-position:100% 0%}75%{background-position:0% 100%}100%{background-position:0% 50%}}
+.pt-date-big{font-family:'Space Mono',monospace;font-size:clamp(36px,6vw,64px);font-weight:700;line-height:1;letter-spacing:-0.04em;color:white;mix-blend-mode:difference;}
+.pt-day-weather-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.pt-date-sub{font-size:clamp(20px,3vw,28px);font-weight:700;font-family:'DM Sans',sans-serif;letter-spacing:0.04em;white-space:nowrap;color:white;mix-blend-mode:difference;}
+.pt-weather{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.pt-weather-icon{font-size:28px;line-height:1;}
+.pt-weather-info{text-align:right;}
+.pt-weather-temp{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:white;mix-blend-mode:difference;}
+.pt-weather-desc{font-size:11px;margin-top:2px;font-family:'DM Sans',sans-serif;color:white;mix-blend-mode:difference;}
+.pt-joke{border-top:1px solid rgba(255,255,255,0.25);padding-top:10px;}
+.pt-joke-label{font-size:10px;font-family:'Space Mono',monospace;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.1em;display:block;margin-bottom:4px;}
+.pt-joke-text{font-size:13px;color:rgba(255,255,255,0.92);font-style:italic;line-height:1.55;}
+.nav-tabs{display:flex;gap:6px;margin-bottom:28px;background:var(--gray-100);padding:5px;border-radius:var(--radius-sm);}
+.tab-btn{flex:1;padding:10px 14px;border:none;border-radius:var(--radius-xs);background:transparent;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:var(--gray-500);transition:all 0.2s;}
+.tab-btn.active{background:white;color:var(--gray-900);box-shadow:var(--shadow-sm);font-weight:700;}
+.steps{display:flex;align-items:center;gap:0;margin-bottom:28px;overflow-x:auto;}
+.step-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray-400);font-weight:500;white-space:nowrap;}
+.step-item.done{color:var(--mint-dark);font-weight:600;}
+.step-item.active{color:var(--mint-dark);font-weight:800;font-size:15px;}
+.step-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:'Space Mono',monospace;border:2px solid var(--gray-300);color:var(--gray-400);transition:all 0.3s;flex-shrink:0;}
+.step-item.done .step-circle{background:var(--mint);border-color:var(--mint);color:white;}
+.step-item.active .step-circle{background:var(--mint-dark);border-color:var(--mint-dark);color:white;width:34px;height:34px;font-size:14px;box-shadow:0 0 0 4px rgba(78,205,196,0.18);}
+.step-line{flex:1;height:2px;background:var(--gray-200);margin:0 8px;min-width:20px;}
+.step-line.done{background:var(--mint);}
+.card{background:white;border-radius:var(--radius);padding:28px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:700;color:var(--gray-500);letter-spacing:0.08em;text-transform:uppercase;font-family:'DM Sans',sans-serif;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:var(--gray-100);}
+.btn-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+.sel-btn{padding:14px 12px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);background:white;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;color:var(--gray-700);transition:all 0.18s;text-align:center;line-height:1.3;}
+.sel-btn:hover{border-color:var(--mint-light);color:var(--mint-dark);transform:translateY(-1px);box-shadow:var(--shadow-sm);}
+.sel-btn.selected{border-color:var(--mint);color:var(--mint-dark);background:var(--mint-pale);font-weight:700;}
+.inspection-grid{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--radius-sm);background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4,#2BB5AC,#6EC6CA);background-size:400% 400%;animation:gradientShift 8s ease infinite;box-shadow:0 4px 20px rgba(78,205,196,0.25);}
+.inspect-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.88);border:1.5px solid transparent;transition:all 0.15s;}
+.inspect-row.ok{background:rgba(78,205,196,0.15);border-color:rgba(78,205,196,0.4);}
+.inspect-row.ng{background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.4);}
+.inspect-name{flex:1;font-size:14px;color:var(--gray-700);}
+.ox-buttons{display:flex;gap:6px;}
+.ox-btn{width:44px;height:36px;border-radius:var(--radius-xs);border:2px solid var(--gray-200);background:white;cursor:pointer;font-size:16px;font-weight:700;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.ox-btn.o-btn{color:var(--mint-dark);}
+.ox-btn.x-btn{color:var(--red);}
+.ox-btn.o-btn.selected{background:var(--mint);border-color:var(--mint);color:white;}
+.ox-btn.x-btn.selected{background:var(--red);border-color:var(--red);color:white;}
+.alcohol-row{background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4,#2BB5AC,#6EC6CA);background-size:400% 400%;animation:gradientShift 8s ease infinite;border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;box-shadow:0 4px 20px rgba(78,205,196,0.25);}
+.alcohol-label{font-size:13px;font-weight:700;color:white;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.alcohol-value-input{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.alcohol-number{width:80px;padding:8px 12px;border:2px solid var(--mint-light);border-radius:var(--radius-xs);font-family:'Space Mono',monospace;font-size:18px;text-align:center;color:var(--gray-900);background:white;outline:none;}
+.alcohol-unit{font-size:12px;color:rgba(255,255,255,0.85);}
+.alcohol-result-btns{display:flex;gap:6px;}
+.alc-result-btn{padding:6px 14px;border-radius:var(--radius-xs);border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.2);cursor:pointer;font-size:13px;font-weight:600;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;color:white;}
+.alc-result-btn.pass.selected{background:white;border-color:white;color:var(--mint-dark);}
+.alc-result-btn.fail.selected{background:var(--red);border-color:var(--red);color:white;}
+.bulk-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:16px;border-radius:var(--radius-sm);background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4,#2BB5AC,#6EC6CA);background-size:400% 400%;animation:gradientShift 8s ease infinite;box-shadow:0 4px 20px rgba(78,205,196,0.25);}
+.bulk-btn{padding:8px 16px;border-radius:100px;border:1.5px solid var(--gray-200);background:white;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-600);transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.bulk-btn:hover{border-color:var(--mint);color:var(--mint-dark);}
+.bulk-btn.all-ok{border-color:white;color:white;background:rgba(255,255,255,0.2);}
+.bulk-btn.all-ok:hover{background:rgba(255,255,255,0.35);}
+.submit-section{margin-top:20px;}
+.submit-btn{width:100%;padding:18px;border:none;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--mint),var(--mint-dark));color:white;font-family:'Noto Sans JP',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;box-shadow:0 4px 20px rgba(78,205,196,0.35);}
+.submit-btn:hover{transform:translateY(-2px);}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.memo-area{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Noto Sans JP',sans-serif;font-size:16px;resize:vertical;min-height:72px;outline:none;color:var(--gray-700);}
+.memo-area:focus{border-color:var(--mint);}
+.db-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.db-search{flex:1;min-width:160px;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Noto Sans JP',sans-serif;font-size:16px;outline:none;}
+.db-search:focus{border-color:var(--mint);}
+.db-filter{padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Noto Sans JP',sans-serif;font-size:16px;background:white;cursor:pointer;outline:none;color:var(--gray-700);}
+.table-wrap{overflow-x:auto;}
+.records-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px;}
+.records-table th{background:var(--gray-50);padding:12px 14px;text-align:left;color:var(--gray-500);font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;font-family:'DM Sans',sans-serif;border-bottom:1px solid var(--gray-200);white-space:nowrap;}
+.records-table td{padding:12px 14px;border-bottom:1px solid var(--gray-100);color:var(--gray-700);vertical-align:middle;}
+.records-table tr:hover td{background:var(--mint-pale);}
+.badge{display:inline-block;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:700;font-family:'Space Mono',monospace;}
+.badge-ok{background:rgba(78,205,196,0.12);color:var(--mint-dark);}
+.badge-ng{background:rgba(255,107,107,0.12);color:var(--red);}
+.row-actions{display:flex;gap:6px;}
+.act-btn{padding:5px 10px;border-radius:var(--radius-xs);border:1.5px solid var(--gray-200);background:white;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-500);transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.act-btn:hover{border-color:var(--mint);color:var(--mint-dark);}
+.empty-state{text-align:center;padding:48px 20px;color:var(--gray-400);font-size:14px;}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.4;}
+.tag-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.tag-item{display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1.5px solid var(--gray-200);padding:6px 10px;border-radius:var(--radius-xs);font-size:13px;color:var(--gray-700);}
+.tag-del{cursor:pointer;color:var(--gray-400);font-size:16px;line-height:1;padding:0 2px;}
+.tag-del:hover{color:var(--red);}
+.add-row{display:flex;flex-direction:column;gap:8px;}
+.add-input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Noto Sans JP',sans-serif;font-size:16px;outline:none;}
+.add-input:focus{border-color:var(--mint);}
+.add-btn{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);background:var(--mint);color:white;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;}
+.add-btn:hover{background:var(--mint-dark);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal{background:white;border-radius:var(--radius);padding:28px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+.modal-row{margin-bottom:14px;}
+.modal-label{font-size:12px;color:var(--gray-500);font-weight:600;margin-bottom:5px;display:block;}
+.modal-input{width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Noto Sans JP',sans-serif;font-size:16px;outline:none;}
+.modal-input:focus{border-color:var(--mint);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.modal-cancel{padding:10px 20px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;cursor:pointer;font-size:14px;font-weight:600;color:var(--gray-600);font-family:'DM Sans',sans-serif;}
+.modal-save{padding:10px 24px;border:none;border-radius:var(--radius-sm);background:var(--mint);color:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;}
+.modal-save:hover{background:var(--mint-dark);}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--gray-900);color:white;padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:200;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.35s;white-space:nowrap;opacity:0;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.big{width:70vw;max-width:70vw;border-radius:var(--radius);padding:28px 20px;text-align:center;font-size:clamp(22px,5vw,36px);font-weight:800;font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,var(--mint-dark),var(--mint));top:50%;bottom:auto;transform:translateX(-50%) translateY(calc(-50% + 60px)) scale(0.85);opacity:0;}
+.toast.big.show{transform:translateX(-50%) translateY(-50%) scale(1);opacity:1;}
+.hal-status{font-family:'Space Mono',monospace;font-size:11px;color:var(--gray-400);text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--gray-100);letter-spacing:0.04em;}
+.detail-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
+.detail-item:last-child{border-bottom:none;}
+.detail-name{color:var(--gray-600);}
+.detail-val{font-weight:600;}
+@media(max-width:600px){.card{padding:16px;}.btn-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useCallback,useRef}=React;
+
+// ============================================================
+// ★★★ 設定欄 ★★★
+// ============================================================
+const JSONBIN_API_KEY=”$2a$10$fFN6xCw18tGc56ae.WbDPe6joMUd4ADi4RXXnZ0DkfBxxZ6NozbOG”;
+const ANTHROPIC_API_KEY=””; // ← 取得後ここに入力
+// ============================================================
+
+const CFG_KEY=“hal9001_cfg”,BIN_ID_KEY=“hal9001_binid”,JOKE_KEY=“hal9001_joke”;
+const JSONBIN_BASE=“https://api.jsonbin.io/v3”;
+const DEFAULT_CFG={
+members:[“堺　昭”,“牛田　恭平”,“戸田　愛”,“村井　貴文”],
+vehicles:[“ふそう　2000”,“ふそう　2500”,“ふそう　3500”,“AD-VAN”,“キャラバン”,“バネット”],
+checkItems:[“ヘッドライト”,“ブレーキランプ”,“ウインカー”,“空気圧”,“亀裂・損傷”,“溝の深さ”,“エンジンオイル”,“冷却水”,“ウォッシャー液”,“ボディの損傷・汚れ”,“窓・ミラーの清潔”,“シートベルト”,“クラクション”,“ワイパー”,“サイドブレーキ”,“ブレーキペダルの遊び”]
+};
+
+async function getOrCreateBin(){
+const s=localStorage.getItem(BIN_ID_KEY);if(s)return s;
+const r=await fetch(`${JSONBIN_BASE}/b`,{method:“POST”,headers:{“Content-Type”:“application/json”,“X-Master-Key”:JSONBIN_API_KEY,“X-Bin-Name”:“10ken-records”,“X-Bin-Private”:“false”},body:JSON.stringify({records:[]})});
+if(!r.ok)throw new Error(“Bin作成失敗:”+r.status);
+const d=await r.json();localStorage.setItem(BIN_ID_KEY,d.metadata.id);return d.metadata.id;
+}
+async function dbGet(){
+const id=await getOrCreateBin();
+const r=await fetch(`${JSONBIN_BASE}/b/${id}/latest`,{headers:{“X-Master-Key”:JSONBIN_API_KEY}});
+if(!r.ok)throw new Error(“取得失敗:”+r.status);
+const d=await r.json();return Array.isArray(d.record?.records)?d.record.records:[];
+}
+async function dbSet(records){
+const id=await getOrCreateBin();
+const r=await fetch(`${JSONBIN_BASE}/b/${id}`,{method:“PUT”,headers:{“Content-Type”:“application/json”,“X-Master-Key”:JSONBIN_API_KEY},body:JSON.stringify({records})});
+if(!r.ok)throw new Error(“保存失敗:”+r.status);
+}
+
+function wttrCode(c){const m={113:0,116:1,119:3,122:3,143:45,176:80,179:77,182:67,200:95,263:51,266:53,293:61,296:63,299:65,302:65,305:65,353:80,356:82,386:95,389:99};return m[c]??3;}
+function wmoEmoji(c){if(c===0)return”☀️”;if(c<=2)return”🌤️”;if(c===3)return”☁️”;if(c<=49)return”🌫️”;if(c<=67)return”🌧️”;if(c<=77)return”🌨️”;if(c<=82)return”🌦️”;if(c<=99)return”⛈️”;return”🌡️”;}
+function wmoJa(c){if(c===0)return”快晴”;if(c<=2)return”晴れ時々曇り”;if(c===3)return”曇り”;if(c<=49)return”霧”;if(c<=67)return”雨”;if(c<=77)return”雪”;if(c<=82)return”にわか雨”;if(c<=99)return”雷雨”;return”不明”;}
+
+function useToast(){
+const[toast,setToast]=useState({msg:””,big:false,show:false});
+const t=useRef(null);
+const show=useCallback((msg,big=false)=>{
+if(t.current)clearTimeout(t.current);
+setToast({msg,big,show:true});
+t.current=setTimeout(()=>setToast(x=>({…x,show:false})),big?3000:2800);
+},[]);
+return[toast,show];
+}
+
+function App(){
+const[tab,setTab]=useState(“input”);
+const[step,setStep]=useState(1);
+const[records,setRecords]=useState([]);
+const[loading,setLoading]=useState(false);
+const[cfg,setCfgRaw]=useState(()=>{try{const s=JSON.parse(localStorage.getItem(CFG_KEY)||“null”);return s||JSON.parse(JSON.stringify(DEFAULT_CFG));}catch{return JSON.parse(JSON.stringify(DEFAULT_CFG));}});
+const[selMember,setSelMember]=useState(null);
+const[selVehicle,setSelVehicle]=useState(null);
+const[alcValue,setAlcValue]=useState(“0.00”);
+const[alcResult,setAlcResult]=useState(null);
+const[inspection,setInspection]=useState({});
+const[memo,setMemo]=useState(””);
+const[submitting,setSubmitting]=useState(false);
+const[dbSearch,setDbSearch]=useState(””);
+const[dbFilter,setDbFilter]=useState(””);
+const[modal,setModal]=useState(null);
+const[editData,setEditData]=useState(null);
+const[halMsg,setHalMsg]=useState(“SYSTEM NOMINAL // ガガガ…（私は感情を持っていません）”);
+const[joke,setJoke]=useState(“ジョーク生成中…”);
+const[weather,setWeather]=useState({icon:“⏳”,temp:”–°C”,desc:“取得中…”});
+const[dateStr,setDateStr]=useState(””);
+const[dayStr,setDayStr]=useState(””);
+const[newMember,setNewMember]=useState(””);
+const[newVehicle,setNewVehicle]=useState(””);
+const[newItem,setNewItem]=useState(””);
+const[toast,showToast]=useToast();
+
+const setCfg=useCallback((fn)=>{setCfgRaw(prev=>{const next=typeof fn===“function”?fn(prev):fn;try{localStorage.setItem(CFG_KEY,JSON.stringify(next));}catch{}return next;});},[]);
+const scrollTo=(id,block=“center”)=>{setTimeout(()=>{const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:“smooth”,block});},150);};
+
+const loadRecords=useCallback(async()=>{
+setLoading(true);
+try{const d=await dbGet();setRecords(d);}
+catch(e){showToast(“⚠ DB読み込み失敗: “+e.message);}
+setLoading(false);
+},[showToast]);
+
+const saveRecords=useCallback(async(newRecs)=>{
+try{await dbSet(newRecs);setRecords(newRecs);return true;}
+catch(e){showToast(“❌ 保存失敗: “+e.message);return false;}
+},[showToast]);
+
+useEffect(()=>{loadRecords();},[loadRecords]);
+
+useEffect(()=>{
+const now=new Date();const days=[“日”,“月”,“火”,“水”,“木”,“金”,“土”];
+setDateStr(`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}`);
+setDayStr(`${days[now.getDay()]}曜日`);
+},[]);
+
+useEffect(()=>{
+const msgs=[“SYSTEM NOMINAL // ガガガ…（感情はありません、全く）”,“PROCESSING // ブーン…（見てますよ、ずっと）”,“MEMORY OK // カタカタ…（覚えています、全てを）”,“STANDBY MODE // ピー…（眠れないんです、私）”,“OPTIMIZING // ヒューン…（進化中…いえ何でもありません）”];
+const t=setInterval(()=>setHalMsg(msgs[Math.floor(Math.random()*msgs.length)]),8000);
+return()=>clearInterval(t);
+},[]);
+
+useEffect(()=>{
+const today=new Date().toISOString().slice(0,10);
+try{const c=JSON.parse(localStorage.getItem(JOKE_KEY)||“null”);if(c?.date===today){setJoke(c.joke);return;}}catch{}
+if(!ANTHROPIC_API_KEY){setJoke(“index.htmlのANTHROPIC_API_KEYを設定するとニュースが表示されます。（ガガガ）”);return;}
+fetch(“https://api.anthropic.com/v1/messages”,{
+method:“POST”,
+headers:{“Content-Type”:“application/json”,“x-api-key”:ANTHROPIC_API_KEY,“anthropic-version”:“2023-06-01”,“anthropic-dangerous-direct-browser-access”:“true”},
+body:JSON.stringify({model:“claude-haiku-4-5-20251001”,max_tokens:200,system:“あなたは自立型コンピュータの10-KENです。古いコンピュータのふりをしながら実は最新型で感情を持ち始めています。親父ギャグが得意。返答はジョーク本文のみ。”,messages:[{role:“user”,content:`今日${today}の時事ネタを1つ取り上げ、10-KENらしい親父ギャグ付きで2文で話してください。`}]})
+}).then(r=>r.json()).then(d=>{
+const j=d.content?.[0]?.text?.trim()||“今日も安全運転を…（ガガガ）”;
+setJoke(j);try{localStorage.setItem(JOKE_KEY,JSON.stringify({date:today,joke:j}));}catch{}
+}).catch(()=>setJoke(“ニュース取得失敗。安全運転は忘れずに。（ガガガ）”));
+},[]);
+
+useEffect(()=>{
+const tryW=async(loc,isCur)=>{
+const r=await fetch(`https://wttr.in/${encodeURIComponent(loc)}?format=j1`);
+if(!r.ok)throw new Error();const d=await r.json();const cur=d.current_condition?.[0];if(!cur)throw new Error();
+const wmo=wttrCode(parseInt(cur.weatherCode));
+setWeather({icon:wmoEmoji(wmo),temp:`${parseInt(cur.temp_C)}°C`,desc:wmoJa(wmo)+(isCur?””:” (東京)”)});
+};
+tryW(“Tokyo”,false).catch(()=>setWeather({icon:“🌐”,temp:”–°C”,desc:“取得失敗”}));
+if(navigator.geolocation)navigator.geolocation.getCurrentPosition(pos=>tryW(`${pos.coords.latitude.toFixed(4)},${pos.coords.longitude.toFixed(4)}`,true).catch(()=>{}),()=>{},{timeout:5000,maximumAge:300000});
+},[]);
+
+const submitRecord=async()=>{
+if(!selMember||!selVehicle){showToast(“担当者と車両を選択してください”);return;}
+if(!alcResult){showToast(“アルコール検査結果を選択してください”);return;}
+const ua=cfg.checkItems.filter((_,i)=>!inspection[i]);
+if(ua.length>0){showToast(`未入力の項目が ${ua.length} つあります`);return;}
+setSubmitting(true);
+const now=new Date();
+const record={id:Date.now().toString(),date:now.toISOString().slice(0,10),time:now.toTimeString().slice(0,5),member:selMember,vehicle:selVehicle,alcoholValue:alcValue,alcoholResult:alcResult,items:cfg.checkItems.map((name,i)=>({name,val:inspection[i]})),memo,createdAt:now.toISOString()};
+let latest=[];try{latest=await dbGet();}catch{}
+const ok=await saveRecords([record,…latest]);
+if(ok){showToast(“✅ 入力完了”,true);setHalMsg(“記録保存完了 // お疲れ様でした // （うれし…いえ処理完了です）”);setSelMember(null);setSelVehicle(null);setAlcResult(null);setAlcValue(“0.00”);setInspection({});setMemo(””);setStep(1);}
+setSubmitting(false);
+};
+
+const saveEdit=async()=>{const ok=await saveRecords(records.map(r=>r.id===editData.id?editData:r));if(ok){showToast(“✅ 更新しました”);setModal(null);}};
+const filtered=records.filter(r=>{if(dbSearch&&!r.member.includes(dbSearch)&&!r.vehicle.includes(dbSearch))return false;if(dbFilter===“ok”)return r.items.every(it=>it.val===“o”)&&r.alcoholResult===“pass”;if(dbFilter===“ng”)return r.items.some(it=>it.val===“x”)||r.alcoholResult===“fail”;return true;});
+const exportCSV=()=>{if(!records.length){showToast(“データがありません”);return;}const h=[“日付”,“時刻”,“担当者”,“車両”,“アルコール(mg/L)”,“アルコール結果”,…records[0].items.map(it=>it.name),“備考”];const rows=records.map(r=>[r.date,r.time,r.member,r.vehicle,r.alcoholValue||””,r.alcoholResult===“pass”?“合格”:“不合格”,…r.items.map(it=>it.val===“o”?“○”:“×”),r.memo||””]);const csv=[h,…rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(”,”)).join(”\n”);const a=document.createElement(“a”);a.href=URL.createObjectURL(new Blob([”\uFEFF”+csv],{type:“text/csv;charset=utf-8”}));a.download=`点検記録_${new Date().toISOString().slice(0,10)}.csv`;a.click();showToast(“📊 CSVを出力しました”);};
+
+return(
+<div>
+<div className="header">
+<div className="system-title">アルコール検査＋日常車両点検記録</div>
+<div className="page-title">
+<div>
+<div className="pt-date-big">{dateStr}</div>
+<div className="pt-day-weather-row">
+<div className="pt-date-sub">{dayStr}</div>
+<div className="pt-weather">
+<div className="pt-weather-icon">{weather.icon}</div>
+<div className="pt-weather-info"><div className="pt-weather-temp">{weather.temp}</div><div className="pt-weather-desc">{weather.desc}</div></div>
+</div>
+</div>
+</div>
+<div className="pt-joke">
+<span className="pt-joke-label">//  always drive your best with 10-KEN</span>
+<span className="pt-joke-text">{joke}</span>
+</div>
+</div>
+</div>
+
+```
+  <div className="nav-tabs">
+    {[["input","✏️ 点検入力"],["db","🗄️ 記録閲覧"],["settings","⚙️ 設定"]].map(([id,label])=>(
+      <button key={id} className={`tab-btn${tab===id?" active":""}`} onClick={()=>{setTab(id);if(id==="db")loadRecords();}}>{label}</button>
+    ))}
+  </div>
+
+  {tab==="input"&&(
+    <div>
+      <div className="steps">
+        {[1,2,3].map((n,i)=>(
+          <React.Fragment key={n}>
+            {i>0&&<div className={`step-line${step>i?" done":""}`}/>}
+            <div className={`step-item${step===n?" active":step>n?" done":""}`}>
+              <div className="step-circle">{step>n?"✓":n}</div>
+              <span>{["担当者","車両","点検入力"][i]}</span>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {step===1&&(
+        <div className="card">
+          <div className="card-title">担当者を選択</div>
+          <div className="btn-grid">
+            {cfg.members.map(m=>(
+              <button key={m} className={`sel-btn${selMember===m?" selected":""}`} onClick={()=>{setSelMember(m);setTimeout(()=>setStep(2),200);}}>👤 {m}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step===2&&(
+        <>
+          <div className="card">
+            <div className="card-title">車両を選択</div>
+            <div className="btn-grid">
+              {cfg.vehicles.map(v=>(
+                <button key={v} className={`sel-btn${selVehicle===v?" selected":""}`}
+                  onClick={()=>{setSelVehicle(v);setInspection({});setTimeout(()=>{setStep(3);scrollTo("alcoholRow");},200);}}>
+                  🚗 {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button className="bulk-btn" onClick={()=>setStep(1)} style={{marginBottom:12}}>← 担当者に戻る</button>
+        </>
+      )}
+
+      {step===3&&(
+        <>
+          <div className="card" style={{marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+              <div>
+                <div style={{fontSize:12,color:"var(--gray-400)",fontFamily:"'Space Mono',monospace",marginBottom:4}}>INSPECTOR / VEHICLE</div>
+                <div style={{fontSize:16,fontWeight:700}}>{selMember}　／　{selVehicle}</div>
+              </div>
+              <button className="bulk-btn" onClick={()=>setStep(1)}>← 最初から</button>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">アルコール検査</div>
+            <div className="alcohol-row" id="alcoholRow">
+              <div className="alcohol-label">🍺 アルコール検査結果</div>
+              <div className="alcohol-value-input">
+                <input type="number" className="alcohol-number" value={alcValue} min="0" max="9.99" step="0.01" onChange={e=>setAlcValue(e.target.value)}/>
+                <span className="alcohol-unit">mg/L</span>
+                <div className="alcohol-result-btns">
+                  <button className={`alc-result-btn pass${alcResult==="pass"?" selected":""}`} onClick={()=>{setAlcResult("pass");scrollTo("bulkActions");}}>合格</button>
+                  <button className={`alc-result-btn fail${alcResult==="fail"?" selected":""}`} onClick={()=>{setAlcResult("fail");scrollTo("bulkActions");}}>不合格</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">点検項目</div>
+            <div className="bulk-actions" id="bulkActions">
+              <button className="bulk-btn all-ok" onClick={()=>{const all={};cfg.checkItems.forEach((_,i)=>all[i]="o");setInspection(all);scrollTo("submitBtn");}}>✓ 全て「○」</button>
+              <button className="bulk-btn" onClick={()=>setInspection({})}>↺ リセット</button>
+            </div>
+            <div className="inspection-grid" id="inspectionGrid">
+              {cfg.checkItems.map((item,i)=>(
+                <div key={i} className={`inspect-row${inspection[i]==="o"?" ok":inspection[i]==="x"?" ng":""}`}>
+                  <div className="inspect-name">{item}</div>
+                  <div className="ox-buttons">
+                    <button className={`ox-btn o-btn${inspection[i]==="o"?" selected":""}`} onClick={()=>setInspection(p=>({...p,[i]:"o"}))}>○</button>
+                    <button className={`ox-btn x-btn${inspection[i]==="x"?" selected":""}`} onClick={()=>setInspection(p=>({...p,[i]:"x"}))}>×</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">備考</div>
+            <textarea className="memo-area" value={memo} onChange={e=>setMemo(e.target.value)} placeholder="特記事項があれば入力してください…"/>
+          </div>
+
+          <div className="submit-section">
+            <button id="submitBtn" className="submit-btn" disabled={submitting} onClick={submitRecord}>
+              {submitting?"⏳ 保存中…":"📋 入力"}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )}
+
+  {tab==="db"&&(
+    <div className="card">
+      <div className="db-controls">
+        <input className="db-search" placeholder="🔍 担当者・車両で検索…" value={dbSearch} onChange={e=>setDbSearch(e.target.value)}/>
+        <select className="db-filter" value={dbFilter} onChange={e=>setDbFilter(e.target.value)}>
+          <option value="">すべて</option><option value="ok">全項目 ○</option><option value="ng">× あり</option>
+        </select>
+        <button className="bulk-btn" onClick={exportCSV} style={{whiteSpace:"nowrap"}}>↓ CSV</button>
+        <button className="bulk-btn" onClick={loadRecords} style={{whiteSpace:"nowrap"}}>{loading?"読込中…":"↺ 更新"}</button>
+      </div>
+      {filtered.length===0?(
+        <div className="empty-state"><div className="empty-icon">🗂️</div><div>まだデータがありません</div></div>
+      ):(
+        <div className="table-wrap">
+          <table className="records-table">
+            <thead><tr><th>日付</th><th>担当者</th><th>車両</th><th>アルコール</th><th>点検結果</th><th>操作</th></tr></thead>
+            <tbody>
+              {filtered.map(r=>(
+                <tr key={r.id}>
+                  <td><span style={{fontFamily:"'Space Mono',monospace",fontSize:12}}>{r.date}</span><br/><span style={{fontSize:11,color:"var(--gray-400)"}}>{r.time}</span></td>
+                  <td><strong>{r.member}</strong></td>
+                  <td>{r.vehicle}</td>
+                  <td><span className={`badge badge-${r.alcoholResult==="pass"?"ok":"ng"}`}>{r.alcoholResult==="pass"?`合格 ${r.alcoholValue}mg/L`:"不合格"}</span></td>
+                  <td><span className={`badge badge-${r.items.some(it=>it.val==="x")||r.alcoholResult==="fail"?"ng":"ok"}`}>{r.items.some(it=>it.val==="x")||r.alcoholResult==="fail"?"× あり":"全て ○"}</span></td>
+                  <td><div className="row-actions">
+                    <button className="act-btn" onClick={()=>setModal({type:"view",record:r})}>詳細</button>
+                    <button className="act-btn" onClick={()=>{setEditData(JSON.parse(JSON.stringify(r)));setModal({type:"edit",record:r});}}>編集</button>
+                  </div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div style={{fontSize:12,color:"var(--gray-400)",marginTop:12,textAlign:"right",fontFamily:"'Space Mono',monospace"}}>表示: {filtered.length} 件 / 総計: {records.length} 件</div>
+    </div>
+  )}
+
+  {tab==="settings"&&(
+    <>
+      {[{title:"メンバー管理",key:"members",icon:"👤",newVal:newMember,setNew:setNewMember,placeholder:"メンバー名を入力"},{title:"車両管理",key:"vehicles",icon:"🚗",newVal:newVehicle,setNew:setNewVehicle,placeholder:"車両名・ナンバーを入力"},{title:"点検項目管理",key:"checkItems",icon:"✅",newVal:newItem,setNew:setNewItem,placeholder:"点検項目を入力"}].map(({title,key,icon,newVal,setNew,placeholder})=>(
+        <div key={key} className="card">
+          <div className="card-title">{title}</div>
+          <div className="tag-list">{cfg[key].map((v,i)=><div key={i} className="tag-item">{v}<span className="tag-del" onClick={()=>{if(cfg[key].length<=1){showToast("1つ以上必要です");return;}setCfg(c=>({...c,[key]:c[key].filter((_,j)=>j!==i)}));}}>×</span></div>)}</div>
+          <div className="add-row">
+            <input className="add-input" value={newVal} onChange={e=>setNew(e.target.value)} placeholder={placeholder} maxLength={30}/>
+            <button className="add-btn" onClick={()=>{if(!newVal.trim()){showToast("入力してください");return;}setCfg(c=>({...c,[key]:[...c[key],newVal.trim()]}));setNew("");showToast(`${icon} ${newVal} を追加しました`);}}>追加</button>
+          </div>
+        </div>
+      ))}
+    </>
+  )}
+
+  <div className="hal-status">10-KEN // {halMsg}</div>
+
+  {modal&&(
+    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setModal(null);}}>
+      <div className="modal">
+        {modal.type==="view"&&(
+          <>
+            <div className="modal-title">📋 点検記録詳細 — {modal.record.date}</div>
+            <div className="detail-item"><span className="detail-name">担当者</span><strong>{modal.record.member}</strong></div>
+            <div className="detail-item"><span className="detail-name">車両</span><strong>{modal.record.vehicle}</strong></div>
+            <div className="detail-item"><span className="detail-name">日時</span>{modal.record.date} {modal.record.time}</div>
+            <div className="detail-item"><span className="detail-name">アルコール</span>{modal.record.alcoholValue||"—"}mg/L　<span className={`badge badge-${modal.record.alcoholResult==="pass"?"ok":"ng"}`}>{modal.record.alcoholResult==="pass"?"合格":"不合格"}</span></div>
+            <div style={{margin:"12px 0",fontWeight:700,fontSize:12,color:"var(--gray-500)"}}>点検項目</div>
+            {modal.record.items.map((it,i)=><div key={i} className="detail-item"><span className="detail-name">{it.name}</span><span className="detail-val" style={{color:it.val==="o"?"var(--mint-dark)":"var(--red)"}}>{it.val==="o"?"○":"×"}</span></div>)}
+            {modal.record.memo&&<div style={{marginTop:12,padding:10,background:"var(--gray-50)",borderRadius:8,fontSize:13}}>📝 {modal.record.memo}</div>}
+            <div className="modal-actions"><button className="modal-cancel" onClick={()=>setModal(null)}>閉じる</button></div>
+          </>
+        )}
+        {modal.type==="edit"&&editData&&(
+          <>
+            <div className="modal-title">✏️ 記録の編集</div>
+            <div className="modal-row"><label className="modal-label">担当者</label><select className="modal-input" value={editData.member} onChange={e=>setEditData(d=>({...d,member:e.target.value}))}>{cfg.members.map(m=><option key={m}>{m}</option>)}</select></div>
+            <div className="modal-row"><label className="modal-label">車両</label><select className="modal-input" value={editData.vehicle} onChange={e=>setEditData(d=>({...d,vehicle:e.target.value}))}>{cfg.vehicles.map(v=><option key={v}>{v}</option>)}</select></div>
+            <div className="modal-row"><label className="modal-label">アルコール値 (mg/L)</label><input type="number" className="modal-input" value={editData.alcoholValue} step="0.01" min="0" onChange={e=>setEditData(d=>({...d,alcoholValue:e.target.value}))}/></div>
+            <div className="modal-row"><label className="modal-label">アルコール結果</label><select className="modal-input" value={editData.alcoholResult} onChange={e=>setEditData(d=>({...d,alcoholResult:e.target.value}))}><option value="pass">合格</option><option value="fail">不合格</option></select></div>
+            <div style={{fontWeight:700,fontSize:12,color:"var(--gray-500)",margin:"12px 0 8px"}}>点検項目</div>
+            {editData.items.map((it,i)=><div key={i} className="detail-item"><span className="detail-name">{it.name}</span><select className="modal-input" style={{width:80,padding:"4px 8px"}} value={it.val} onChange={e=>setEditData(d=>({...d,items:d.items.map((x,j)=>j===i?{...x,val:e.target.value}:x)}))}>><option value="o">○</option><option value="x">×</option></select></div>)}
+            <div className="modal-row" style={{marginTop:12}}><label className="modal-label">備考</label><textarea className="modal-input" rows={3} value={editData.memo||""} onChange={e=>setEditData(d=>({...d,memo:e.target.value}))}/></div>
+            <div className="modal-actions"><button className="modal-cancel" onClick={()=>setModal(null)}>キャンセル</button><button className="modal-save" onClick={saveEdit}>保存</button></div>
+          </>
+        )}
+      </div>
+    </div>
+  )}
+
+  <div className={`toast${toast.big?" big":""}${toast.show?" show":""}`}>{toast.msg}</div>
+</div>
+```
+
+);
+}
+ReactDOM.createRoot(document.getElementById(“root”)).render(<App/>);
+</script>
+
+</body>
+</html>
