@@ -1,4 +1,4 @@
-
+<!10ken-3>
 
 <!DOCTYPE html>
 
@@ -323,7 +323,16 @@ const DEFAULT_CFG = {
 };
 
 // --- 状態 ---
-let cfg = JSON.parse(localStorage.getItem(CFG_KEY) || "null") || JSON.parse(JSON.stringify(DEFAULT_CFG));
+let cfg = (function() {
+  try {
+    const saved = localStorage.getItem(CFG_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && Array.isArray(parsed.members) && parsed.members.length > 0) return parsed;
+    }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CFG));
+})();
 let records = [];
 let selMember = null, selVehicle = null, alcResult = null, inspection = {};
 let editingId = null;
@@ -698,9 +707,16 @@ setInterval(()=>{document.getElementById(“halStatus”).textContent=“10-KEN 
 // ============================================================
 // Init
 // ============================================================
+// DOM読み込み完了後に確実に初期化
+document.addEventListener(“DOMContentLoaded”, function() {
+// cfgのメンバーが空なら強制的にDEFAULT_CFGを使う
+if (!cfg || !cfg.members || cfg.members.length === 0) {
+cfg = JSON.parse(JSON.stringify(DEFAULT_CFG));
+}
 renderMemberGrid();
 gotoStep(1);
-dbGet().then(data=>{records=data;}).catch(()=>{});
+dbGet().then(function(data){ records = data; }).catch(function(){});
+});
 </script>
 
 </body>
