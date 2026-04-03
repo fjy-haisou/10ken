@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>10-KEN 日常車両点検システム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mint:#4ECDC4;--mint-light:#A8EDEA;--mint-pale:#E8FAF9;--mint-dark:#2BB5AC;
+  --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;
+  --g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--g900:#111827;
+  --red:#FF6B6B;--radius:16px;--rsm:10px;--rxs:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Noto Sans JP",sans-serif;background:#EEF2F7;color:var(--g900);min-height:100vh;}
+.app{max-width:860px;margin:0 auto;padding:0 16px 60px;}
+.header{padding:20px 0 16px;display:flex;flex-direction:column;gap:10px;}
+.sys-title{font-family:"DM Sans",sans-serif;font-size:14px;font-weight:200;color:var(--mint-dark);}
+.pg-title{padding:18px 20px 14px;border-radius:var(--rsm);background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4);background-size:400% 400%;animation:gs 8s ease infinite;box-shadow:0 4px 20px rgba(78,205,196,0.3);display:flex;flex-direction:column;gap:10px;color:white;}
+@keyframes gs{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.date-big{font-family:"Space Mono",monospace;font-size:clamp(32px,6vw,56px);font-weight:700;line-height:1;letter-spacing:-0.04em;}
+.day-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.day-txt{font-size:clamp(18px,3vw,26px);font-weight:700;font-family:"DM Sans",sans-serif;white-space:nowrap;}
+.weather{display:flex;align-items:center;gap:6px;}
+.w-icon{font-size:24px;}
+.w-temp{font-family:"Space Mono",monospace;font-size:18px;font-weight:700;}
+.w-desc{font-size:10px;opacity:0.85;text-align:right;}
+.joke-area{border-top:1px solid rgba(255,255,255,0.25);padding-top:8px;}
+.joke-label{font-size:10px;font-family:"Space Mono",monospace;color:rgba(255,255,255,0.7);font-weight:700;letter-spacing:0.1em;display:block;margin-bottom:3px;}
+.joke-text{font-size:12px;color:rgba(255,255,255,0.9);font-style:italic;line-height:1.5;}
+.tabs{display:flex;gap:5px;margin-bottom:24px;background:var(--g100);padding:4px;border-radius:var(--rsm);}
+.tab{flex:1;padding:9px 6px;border:none;border-radius:var(--rxs);background:transparent;cursor:pointer;font-family:"Noto Sans JP",sans-serif;font-size:12px;font-weight:500;color:var(--g500);}
+.tab.on{background:white;color:var(--g900);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.pnl{display:none;} .pnl.on{display:block;}
+.steps{display:flex;align-items:center;margin-bottom:24px;overflow-x:auto;}
+.si{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g400);white-space:nowrap;}
+.si.done{color:var(--mint-dark);font-weight:600;}
+.si.now{color:var(--mint-dark);font-weight:800;font-size:15px;}
+.sc{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--g300);color:var(--g400);flex-shrink:0;}
+.si.done .sc{background:var(--mint);border-color:var(--mint);color:white;}
+.si.now .sc{background:var(--mint-dark);border-color:var(--mint-dark);color:white;width:32px;height:32px;box-shadow:0 0 0 3px rgba(78,205,196,0.2);}
+.sl{flex:1;height:2px;background:var(--g200);margin:0 6px;min-width:12px;}
+.sl.done{background:var(--mint);}
+.card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:14px;}
+.ctitle{font-size:12px;font-weight:700;color:var(--g500);letter-spacing:0.08em;text-transform:uppercase;font-family:"DM Sans",sans-serif;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.ctitle::after{content:"";flex:1;height:1px;background:var(--g100);}
+.grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));}
+.sbtn{padding:12px 8px;border:2px solid var(--g200);border-radius:var(--rsm);background:white;cursor:pointer;font-family:"Noto Sans JP",sans-serif;font-size:13px;font-weight:500;color:var(--g700);text-align:center;line-height:1.3;}
+.sbtn.on{border-color:var(--mint);color:var(--mint-dark);background:var(--mint-pale);font-weight:700;}
+.alc-row{background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4);background-size:400% 400%;animation:gs 8s ease infinite;border-radius:var(--rsm);padding:14px;margin-bottom:14px;}
+.alc-lbl{font-size:13px;font-weight:700;color:white;margin-bottom:8px;}
+.alc-row2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.alc-num{width:76px;padding:8px 10px;border:2px solid rgba(255,255,255,0.5);border-radius:var(--rxs);font-family:"Space Mono",monospace;font-size:18px;text-align:center;color:var(--g900);background:white;outline:none;}
+.alc-unit{font-size:12px;color:rgba(255,255,255,0.85);}
+.alc-btns{display:flex;gap:5px;}
+.abtn{padding:8px 14px;border-radius:var(--rxs);border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.2);cursor:pointer;font-size:13px;font-weight:600;color:white;font-family:"Noto Sans JP",sans-serif;}
+.abtn.pass.on{background:white;border-color:white;color:var(--mint-dark);}
+.abtn.fail.on{background:var(--red);border-color:var(--red);color:white;}
+.bulk{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding:12px;border-radius:var(--rsm);background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4);background-size:400% 400%;animation:gs 8s ease infinite;}
+.bbtn{padding:7px 14px;border-radius:100px;border:1.5px solid white;background:rgba(255,255,255,0.2);cursor:pointer;font-size:12px;font-weight:600;color:white;font-family:"DM Sans",sans-serif;}
+.bbtn.w{border-color:var(--g200);background:white;color:var(--g600);}
+.igrid{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:var(--rsm);background:linear-gradient(270deg,#4ECDC4,#2BB5AC,#45B7D1,#96CEB4,#88D8B0,#4ECDC4);background-size:400% 400%;animation:gs 8s ease infinite;}
+.irow{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--rsm);background:rgba(255,255,255,0.88);border:1.5px solid transparent;}
+.irow.ok{background:rgba(78,205,196,0.15);border-color:rgba(78,205,196,0.4);}
+.irow.ng{background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.4);}
+.iname{flex:1;font-size:13px;color:var(--g700);}
+.oxb{display:flex;gap:5px;}
+.ob{width:40px;height:34px;border-radius:var(--rxs);border:2px solid var(--g200);background:white;cursor:pointer;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.ob.o{color:var(--mint-dark);}
+.ob.x{color:var(--red);}
+.ob.o.on{background:var(--mint);border-color:var(--mint);color:white;}
+.ob.x.on{background:var(--red);border-color:var(--red);color:white;}
+.subbtn{width:100%;padding:16px;border:none;border-radius:var(--rsm);background:linear-gradient(135deg,var(--mint),var(--mint-dark));color:white;font-family:"Noto Sans JP",sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(78,205,196,0.35);margin-top:16px;}
+.subbtn:disabled{opacity:0.5;cursor:not-allowed;}
+.memo{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:var(--rsm);font-family:"Noto Sans JP",sans-serif;font-size:16px;resize:vertical;min-height:68px;outline:none;color:var(--g700);}
+.memo:focus{border-color:var(--mint);}
+.dbctl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.dbsrch{flex:1;min-width:130px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rsm);font-family:"Noto Sans JP",sans-serif;font-size:16px;outline:none;}
+.dbsrch:focus{border-color:var(--mint);}
+.dbflt{padding:9px 10px;border:1.5px solid var(--g200);border-radius:var(--rsm);font-family:"Noto Sans JP",sans-serif;font-size:16px;background:white;cursor:pointer;outline:none;}
+.twrap{overflow-x:auto;}
+.rtbl{width:100%;border-collapse:collapse;font-size:12px;min-width:520px;}
+.rtbl th{background:var(--g50);padding:9px 11px;text-align:left;color:var(--g500);font-weight:600;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;font-family:"DM Sans",sans-serif;border-bottom:1px solid var(--g200);white-space:nowrap;}
+.rtbl td{padding:9px 11px;border-bottom:1px solid var(--g100);color:var(--g700);vertical-align:middle;}
+.rtbl tr:hover td{background:var(--mint-pale);}
+.badge{display:inline-block;padding:2px 7px;border-radius:100px;font-size:10px;font-weight:700;}
+.bok{background:rgba(78,205,196,0.12);color:var(--mint-dark);}
+.bng{background:rgba(255,107,107,0.12);color:var(--red);}
+.ract{display:flex;gap:5px;}
+.actb{padding:4px 8px;border-radius:var(--rxs);border:1.5px solid var(--g200);background:white;cursor:pointer;font-size:11px;font-weight:600;color:var(--g500);}
+.actb:hover{border-color:var(--mint);color:var(--mint-dark);}
+.empty{text-align:center;padding:36px 16px;color:var(--g400);font-size:13px;}
+.tlist{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;}
+.titem{display:flex;align-items:center;gap:5px;background:var(--g50);border:1.5px solid var(--g200);padding:5px 9px;border-radius:var(--rxs);font-size:12px;color:var(--g700);}
+.tdel{cursor:pointer;color:var(--g400);font-size:15px;line-height:1;}
+.tdel:hover{color:var(--red);}
+.arow{display:flex;flex-direction:column;gap:7px;margin-top:4px;}
+.ainp{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:var(--rsm);font-family:"Noto Sans JP",sans-serif;font-size:16px;outline:none;}
+.ainp:focus{border-color:var(--mint);}
+.addbtn{width:100%;padding:11px;border:none;border-radius:var(--rsm);background:var(--mint);color:white;font-weight:700;cursor:pointer;font-size:13px;font-family:"DM Sans",sans-serif;}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:white;border-radius:var(--radius);padding:22px;width:100%;max-width:580px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.15);}
+.mtitle{font-size:16px;font-weight:700;margin-bottom:16px;}
+.mrow{margin-bottom:11px;}
+.mlbl{font-size:11px;color:var(--g500);font-weight:600;margin-bottom:4px;display:block;}
+.minp{width:100%;padding:9px 11px;border:1.5px solid var(--g200);border-radius:var(--rsm);font-family:"Noto Sans JP",sans-serif;font-size:16px;outline:none;}
+.minp:focus{border-color:var(--mint);}
+.macts{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
+.mcncl{padding:9px 18px;border:1.5px solid var(--g200);border-radius:var(--rsm);background:white;cursor:pointer;font-size:13px;font-weight:600;color:var(--g600);font-family:"DM Sans",sans-serif;}
+.msave{padding:9px 22px;border:none;border-radius:var(--rsm);background:var(--mint);color:white;cursor:pointer;font-size:13px;font-weight:700;font-family:"DM Sans",sans-serif;}
+.di{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--g100);font-size:12px;}
+.di:last-child{border-bottom:none;}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--g900);color:white;padding:11px 22px;border-radius:100px;font-size:13px;font-weight:500;z-index:200;transition:transform 0.3s,opacity 0.3s;opacity:0;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.big{width:72vw;border-radius:var(--radius);padding:22px 14px;text-align:center;font-size:clamp(18px,5vw,30px);font-weight:800;background:linear-gradient(135deg,var(--mint-dark),var(--mint));top:50%;bottom:auto;white-space:normal;transform:translateX(-50%) translateY(-50%) scale(0.85);opacity:0;}
+.toast.big.show{transform:translateX(-50%) translateY(-50%) scale(1);opacity:1;}
+.hal{font-family:"Space Mono",monospace;font-size:10px;color:var(--g400);text-align:center;margin-top:36px;padding-top:16px;border-top:1px solid var(--g100);}
+@media(max-width:560px){.card{padding:14px;}.grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="sys-title">アルコール検査＋日常車両点検記録</div>
+  <div class="pg-title">
+    <div>
+      <div class="date-big" id="dateEl">----/--/--</div>
+      <div class="day-row">
+        <div class="day-txt" id="dayEl">---曜日</div>
+        <div class="weather">
+          <span class="w-icon" id="wIcon">⏳</span>
+          <div>
+            <div class="w-temp" id="wTemp">--°C</div>
+            <div class="w-desc" id="wDesc">取得中…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="joke-area">
+      <span class="joke-label">//  always drive your best with 10-KEN</span>
+      <span class="joke-text" id="jokeEl">ジョーク生成中…</span>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="showTab('input',this)">✏️ 点検入力</button>
+  <button class="tab" onclick="showTab('db',this)">🗄️ 記録閲覧</button>
+  <button class="tab" onclick="showTab('settings',this)">⚙️ 設定</button>
+</div>
+
+<div class="pnl on" id="pnl-input">
+  <div class="steps">
+    <div class="si now" id="si1"><div class="sc" id="sc1">1</div><span>担当者</span></div>
+    <div class="sl" id="sl1"></div>
+    <div class="si" id="si2"><div class="sc" id="sc2">2</div><span>車両</span></div>
+    <div class="sl" id="sl2"></div>
+    <div class="si" id="si3"><div class="sc" id="sc3">3</div><span>点検入力</span></div>
+  </div>
+
+  <div id="sp1">
+    <div class="card">
+      <div class="ctitle">担当者を選択</div>
+      <div class="grid" id="mGrid"></div>
+    </div>
+  </div>
+
+  <div id="sp2" style="display:none">
+    <div class="card">
+      <div class="ctitle">車両を選択</div>
+      <div class="grid" id="vGrid"></div>
+    </div>
+    <button class="bbtn w" onclick="goStep(1)" style="margin-bottom:10px">← 担当者に戻る</button>
+  </div>
+
+  <div id="sp3" style="display:none">
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div>
+          <div style="font-size:10px;color:var(--g400);font-family:'Space Mono',monospace;margin-bottom:3px">INSPECTOR / VEHICLE</div>
+          <div style="font-size:15px;font-weight:700" id="sumEl">—</div>
+        </div>
+        <button class="bbtn w" onclick="goStep(1)">← 最初から</button>
+      </div>
+    </div>
+
+```
+<div class="card">
+  <div class="ctitle">アルコール検査</div>
+  <div class="alc-row" id="alcRow">
+    <div class="alc-lbl">🍺 アルコール検査結果</div>
+    <div class="alc-row2">
+      <input type="number" class="alc-num" id="alcVal" value="0.00" min="0" max="9.99" step="0.01">
+      <span class="alc-unit">mg/L</span>
+      <div class="alc-btns">
+        <button class="abtn pass" id="btnPass" onclick="setAlc('pass')">合格</button>
+        <button class="abtn fail" id="btnFail" onclick="setAlc('fail')">不合格</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ctitle">点検項目</div>
+  <div class="bulk" id="bulkArea">
+    <button class="bbtn" onclick="setAll('o')">✓ 全て「○」</button>
+    <button class="bbtn" onclick="setAll('')">↺ リセット</button>
+  </div>
+  <div class="igrid" id="iGrid"></div>
+</div>
+
+<div class="card">
+  <div class="ctitle">備考</div>
+  <textarea class="memo" id="memoEl" placeholder="特記事項があれば入力してください…"></textarea>
+</div>
+
+<button class="subbtn" id="subBtn" onclick="doSubmit()">📋 入力</button>
+```
+
+  </div>
+</div>
+
+<div class="pnl" id="pnl-db">
+  <div class="card">
+    <div class="dbctl">
+      <input type="text" class="dbsrch" id="dbSrch" placeholder="🔍 担当者・車両で検索…" oninput="renderDB()">
+      <select class="dbflt" id="dbFlt" onchange="renderDB()">
+        <option value="">すべて</option>
+        <option value="ok">全項目 ○</option>
+        <option value="ng">× あり</option>
+      </select>
+      <button class="bbtn w" onclick="doCSV()">↓ CSV</button>
+      <button class="bbtn w" onclick="doLoad()">↺ 更新</button>
+    </div>
+    <div class="twrap">
+      <table class="rtbl">
+        <thead><tr><th>日付</th><th>担当者</th><th>車両</th><th>アルコール</th><th>点検結果</th><th>操作</th></tr></thead>
+        <tbody id="dbBody"></tbody>
+      </table>
+    </div>
+    <div id="dbEmp" class="empty" style="display:none">🗂️<br>まだデータがありません</div>
+    <div id="dbStat" style="font-size:11px;color:var(--g400);margin-top:8px;text-align:right;font-family:'Space Mono',monospace"></div>
+  </div>
+</div>
+
+<div class="pnl" id="pnl-settings">
+  <div class="card">
+    <div class="ctitle">メンバー管理</div>
+    <div class="tlist" id="mTags"></div>
+    <div class="arow">
+      <input class="ainp" id="mInp" placeholder="メンバー名を入力" maxlength="20">
+      <button class="addbtn" onclick="addM()">追加</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">車両管理</div>
+    <div class="tlist" id="vTags"></div>
+    <div class="arow">
+      <input class="ainp" id="vInp" placeholder="車両名・ナンバーを入力" maxlength="20">
+      <button class="addbtn" onclick="addV()">追加</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">点検項目管理</div>
+    <div class="tlist" id="iTags"></div>
+    <div class="arow">
+      <input class="ainp" id="iInp" placeholder="点検項目を入力" maxlength="30">
+      <button class="addbtn" onclick="addI()">追加</button>
+    </div>
+  </div>
+</div>
+
+<div class="hal" id="halEl">10-KEN // SYSTEM NOMINAL // ガガガ…</div>
+</div>
+
+<div class="moverlay" id="mOvl" style="display:none" onclick="if(event.target===this)closeMod()">
+  <div class="modal">
+    <div class="mtitle" id="mTitle"></div>
+    <div id="mBody"></div>
+    <div class="macts">
+      <button class="mcncl" onclick="closeMod()">閉じる</button>
+      <button class="msave" id="mSave" onclick="saveMod()" style="display:none">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+"use strict";
+
+// ===== 設定 =====
+var JBKEY = "$2a$10$fFN6xCw18tGc56ae.WbDPe6joMUd4ADi4RXXnZ0DkfBxxZ6NozbOG";
+var AKKEY = "";
+var JB = "https://api.jsonbin.io/v3";
+var CK = "10ken_cfg";
+var BK = "10ken_bin";
+var JK = "10ken_joke";
+
+var DCFG = {
+  members: ["堺　昭","牛田　恭平","戸田　愛","村井　貴文"],
+  vehicles: ["ふそう　2000","ふそう　2500","ふそう　3500","AD-VAN","キャラバン","バネット"],
+  checkItems: ["ヘッドライト","ブレーキランプ","ウインカー","空気圧","亀裂・損傷","溝の深さ","エンジンオイル","冷却水","ウォッシャー液","ボディの損傷・汚れ","窓・ミラーの清潔","シートベルト","クラクション","ワイパー","サイドブレーキ","ブレーキペダルの遊び"]
+};
+
+// ===== 状態 =====
+var cfg, records, selM, selV, alcR, insp, editId;
+
+function initState() {
+  try {
+    var s = localStorage.getItem(CK);
+    var p = s ? JSON.parse(s) : null;
+    cfg = (p && p.members && p.members.length > 0) ? p : JSON.parse(JSON.stringify(DCFG));
+  } catch(e) {
+    cfg = JSON.parse(JSON.stringify(DCFG));
+  }
+  records = [];
+  selM = null; selV = null; alcR = null; insp = {}; editId = null;
+}
+
+function saveCfg() {
+  try { localStorage.setItem(CK, JSON.stringify(cfg)); } catch(e) {}
+}
+
+// ===== JSONBin =====
+function getBinId() {
+  return new Promise(function(resolve, reject) {
+    var saved = localStorage.getItem(BK);
+    if (saved) { resolve(saved); return; }
+    fetch(JB + "/b", {
+      method: "POST",
+      headers: {"Content-Type":"application/json","X-Master-Key":JBKEY,"X-Bin-Name":"10ken","X-Bin-Private":"false"},
+      body: JSON.stringify({records:[]})
+    }).then(function(r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }).then(function(d) {
+      localStorage.setItem(BK, d.metadata.id);
+      resolve(d.metadata.id);
+    }).catch(reject);
+  });
+}
+
+function dbGet() {
+  return getBinId().then(function(id) {
+    return fetch(JB + "/b/" + id + "/latest", {headers:{"X-Master-Key":JBKEY}});
+  }).then(function(r) {
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(function(d) {
+    return (d.record && Array.isArray(d.record.records)) ? d.record.records : [];
+  });
+}
+
+function dbSet(recs) {
+  return getBinId().then(function(id) {
+    return fetch(JB + "/b/" + id, {
+      method: "PUT",
+      headers: {"Content-Type":"application/json","X-Master-Key":JBKEY},
+      body: JSON.stringify({records:recs})
+    });
+  }).then(function(r) {
+    if (!r.ok) throw new Error(r.status);
+  });
+}
+
+// ===== Toast =====
+var tTimer = null;
+function toast(msg, big) {
+  var t = document.getElementById("toastEl");
+  if (tTimer) clearTimeout(tTimer);
+  t.className = "toast" + (big ? " big" : "");
+  t.textContent = msg;
+  void t.offsetWidth;
+  t.className += " show";
+  tTimer = setTimeout(function() { t.className = t.className.replace(" show",""); }, big ? 3000 : 2500);
+}
+
+function scrl(id) {
+  setTimeout(function() {
+    var el = document.getElementById(id);
+    if (el) el.scrollIntoView({behavior:"smooth",block:"center"});
+  }, 150);
+}
+
+// ===== Tab =====
+function showTab(tab, el) {
+  document.querySelectorAll(".pnl").forEach(function(p){p.classList.remove("on");});
+  document.querySelectorAll(".tab").forEach(function(b){b.classList.remove("on");});
+  document.getElementById("pnl-" + tab).classList.add("on");
+  if (el) el.classList.add("on");
+  if (tab === "db") doLoad();
+  if (tab === "settings") renderSets();
+}
+
+// ===== Steps =====
+function goStep(n) {
+  for (var i = 1; i <= 3; i++) {
+    document.getElementById("sp" + i).style.display = (i === n) ? "block" : "none";
+    var si = document.getElementById("si" + i);
+    si.className = "si" + (i < n ? " done" : i === n ? " now" : "");
+    document.getElementById("sc" + i).textContent = i < n ? "✓" : i;
+    if (i < 3) document.getElementById("sl" + i).className = "sl" + (i < n ? " done" : "");
+  }
+}
+
+// ===== Member/Vehicle =====
+function renderM() {
+  document.getElementById("mGrid").innerHTML = cfg.members.map(function(m,i) {
+    return "<button class="sbtn" + (selM===m?" on":"") + "" onclick="pickM(" + i + ")">👤 " + m + "</button>";
+  }).join("");
+}
+
+function renderV() {
+  document.getElementById("vGrid").innerHTML = cfg.vehicles.map(function(v,i) {
+    return "<button class="sbtn" + (selV===v?" on":"") + "" onclick="pickV(" + i + ")">🚗 " + v + "</button>";
+  }).join("");
+}
+
+function pickM(i) {
+  selM = cfg.members[i];
+  renderM(); renderV();
+  setTimeout(function(){ goStep(2); }, 200);
+}
+
+function pickV(i) {
+  selV = cfg.vehicles[i];
+  renderV();
+  setTimeout(function(){
+    goStep(3);
+    document.getElementById("sumEl").textContent = selM + "　／　" + selV;
+    renderI();
+    scrl("alcRow");
+  }, 200);
+}
+
+// ===== Inspection =====
+function renderI() {
+  insp = {}; alcR = null;
+  document.getElementById("btnPass").className = "abtn pass";
+  document.getElementById("btnFail").className = "abtn fail";
+  document.getElementById("alcVal").value = "0.00";
+  document.getElementById("memoEl").value = "";
+  document.getElementById("iGrid").innerHTML = cfg.checkItems.map(function(item,i) {
+    return "<div class="irow" id="ir" + i + ""><div class="iname">" + item + "</div><div class="oxb"><button class="ob o" id="ob" + i + "" onclick="setInsp(" + i + ",'o')">○</button><button class="ob x" id="xb" + i + "" onclick="setInsp(" + i + ",'x')">×</button></div></div>";
+  }).join("");
+}
+
+function setInsp(i, v) {
+  insp[i] = v;
+  document.getElementById("ob"+i).className = "ob o" + (v==="o"?" on":"");
+  document.getElementById("xb"+i).className = "ob x" + (v==="x"?" on":"");
+  document.getElementById("ir"+i).className = "irow" + (v==="o"?" ok":" ng");
+}
+
+function setAlc(r) {
+  alcR = r;
+  document.getElementById("btnPass").className = "abtn pass" + (r==="pass"?" on":"");
+  document.getElementById("btnFail").className = "abtn fail" + (r==="fail"?" on":"");
+  scrl("bulkArea");
+}
+
+function setAll(v) {
+  for (var i = 0; i < cfg.checkItems.length; i++) {
+    if (v) { setInsp(i, v); }
+    else {
+      insp[i] = "";
+      document.getElementById("ob"+i).className = "ob o";
+      document.getElementById("xb"+i).className = "ob x";
+      document.getElementById("ir"+i).className = "irow";
+    }
+  }
+  if (v) scrl("subBtn");
+}
+
+// ===== Submit =====
+function doSubmit() {
+  if (!selM || !selV) { toast("担当者と車両を選択してください"); return; }
+  if (!alcR) { toast("アルコール検査結果を選択してください"); return; }
+  var ua = 0;
+  for (var i = 0; i < cfg.checkItems.length; i++) { if (!insp[i]) ua++; }
+  if (ua > 0) { toast("未入力の項目が" + ua + "つあります"); return; }
+
+  var btn = document.getElementById("subBtn");
+  btn.disabled = true; btn.textContent = "⏳ 保存中…";
+
+  var now = new Date();
+  var rec = {
+    id: Date.now().toString(),
+    date: now.toISOString().slice(0,10),
+    time: now.toTimeString().slice(0,5),
+    member: selM, vehicle: selV,
+    alcoholValue: document.getElementById("alcVal").value,
+    alcoholResult: alcR,
+    items: cfg.checkItems.map(function(name,i){ return {name:name, val:insp[i]}; }),
+    memo: document.getElementById("memoEl").value,
+    createdAt: now.toISOString()
+  };
+
+  dbGet().then(function(latest) {
+    return dbSet([rec].concat(latest));
+  }).then(function() {
+    return dbGet();
+  }).then(function(data) {
+    records = data;
+    toast("✅ 入力完了", true);
+    selM=null; selV=null; alcR=null; insp={};
+    goStep(1); renderM();
+    btn.disabled=false; btn.textContent="📋 入力";
+  }).catch(function(e) {
+    toast("❌ 保存失敗: " + e.message);
+    btn.disabled=false; btn.textContent="📋 入力";
+  });
+}
+
+// ===== DB =====
+function doLoad() {
+  dbGet().then(function(data){ records=data; renderDB(); })
+         .catch(function(e){ toast("⚠ 読み込み失敗: "+e.message); });
+}
+
+function renderDB() {
+  var s = document.getElementById("dbSrch").value.toLowerCase();
+  var f = document.getElementById("dbFlt").value;
+  var data = records.filter(function(r) {
+    if (s && r.member.toLowerCase().indexOf(s)<0 && r.vehicle.toLowerCase().indexOf(s)<0) return false;
+    if (f==="ok") return r.items.every(function(it){return it.val==="o";}) && r.alcoholResult==="pass";
+    if (f==="ng") return r.items.some(function(it){return it.val==="x";}) || r.alcoholResult==="fail";
+    return true;
+  });
+  document.getElementById("dbEmp").style.display = data.length===0 ? "block" : "none";
+  document.getElementById("dbStat").textContent = data.length>0 ? "表示:"+data.length+"件 / 総計:"+records.length+"件" : "";
+  document.getElementById("dbBody").innerHTML = data.map(function(r) {
+    var ng = r.items.some(function(it){return it.val==="x";}) || r.alcoholResult==="fail";
+    return "<tr><td><span style="font-family:'Space Mono',monospace;font-size:11px">"+r.date+"</span><br><span style="font-size:10px;color:var(--g400)">"+r.time+"</span></td><td><strong>"+r.member+"</strong></td><td>"+r.vehicle+"</td><td><span class="badge "+(r.alcoholResult==="pass"?"bok":"bng")+"">"+(r.alcoholResult==="pass"?"合格 "+r.alcoholValue+"mg/L":"不合格")+"</span></td><td><span class="badge "+(ng?"bng":"bok")+"">"+(ng?"× あり":"全て ○")+"</span></td><td><div class="ract"><button class="actb" onclick="viewR('"+r.id+"')">詳細</button><button class="actb" onclick="editR('"+r.id+"')">編集</button></div></td></tr>";
+  }).join("");
+}
+
+// ===== Modal =====
+function viewR(id) {
+  var r = records.find(function(x){return x.id===id;}); if (!r) return;
+  document.getElementById("mTitle").textContent = "📋 点検記録詳細 — " + r.date;
+  document.getElementById("mSave").style.display = "none";
+  document.getElementById("mBody").innerHTML =
+    "<div class="di"><span style="color:var(--g500)">担当者</span><strong>"+r.member+"</strong></div>"+
+    "<div class="di"><span style="color:var(--g500)">車両</span><strong>"+r.vehicle+"</strong></div>"+
+    "<div class="di"><span style="color:var(--g500)">日時</span>"+r.date+" "+r.time+"</div>"+
+    "<div class="di"><span style="color:var(--g500)">アルコール</span>"+(r.alcoholValue||"—")+"mg/L　<span class="badge "+(r.alcoholResult==="pass"?"bok":"bng")+"">"+(r.alcoholResult==="pass"?"合格":"不合格")+"</span></div>"+
+    "<div style="margin:10px 0;font-weight:700;font-size:11px;color:var(--g500)">点検項目</div>"+
+    r.items.map(function(it){return "<div class="di"><span style="color:var(--g500)">"+it.name+"</span><span style="font-weight:700;color:"+(it.val==="o"?"var(--mint-dark)":"var(--red)")+"">"+(it.val==="o"?"○":"×")+"</span></div>";}).join("")+
+    (r.memo?"<div style="margin-top:10px;padding:9px;background:var(--g50);border-radius:8px;font-size:12px">📝 "+r.memo+"</div>":"");
+  document.getElementById("mOvl").style.display = "flex";
+}
+
+function editR(id) {
+  var r = records.find(function(x){return x.id===id;}); if (!r) return;
+  editId = id;
+  document.getElementById("mTitle").textContent = "✏️ 記録の編集";
+  document.getElementById("mSave").style.display = "block";
+  document.getElementById("mBody").innerHTML =
+    "<div class="mrow"><label class="mlbl">担当者</label><select class="minp" id="eM">"+cfg.members.map(function(m){return "<option"+(m===r.member?" selected":"")+">"+m+"</option>";}).join("")+"</select></div>"+
+    "<div class="mrow"><label class="mlbl">車両</label><select class="minp" id="eV">"+cfg.vehicles.map(function(v){return "<option"+(v===r.vehicle?" selected":"")+">"+v+"</option>";}).join("")+"</select></div>"+
+    "<div class="mrow"><label class="mlbl">アルコール値(mg/L)</label><input type="number" class="minp" id="eA" value=""+(r.alcoholValue||"")+"" step="0.01" min="0"></div>"+
+    "<div class="mrow"><label class="mlbl">アルコール結果</label><select class="minp" id="eR"><option value="pass""+(r.alcoholResult==="pass"?" selected":"")+">合格</option><option value="fail""+(r.alcoholResult==="fail"?" selected":"")+">不合格</option></select></div>"+
+    "<div style="font-weight:700;font-size:11px;color:var(--g500);margin:10px 0 6px">点検項目</div>"+
+    r.items.map(function(it,i){return "<div class="di"><span style="color:var(--g500)">"+it.name+"</span><select class="minp" id="eI"+i+"" style="width:76px;padding:4px 7px"><option value="o""+(it.val==="o"?" selected":"")+">○</option><option value="x""+(it.val==="x"?" selected":"")+">×</option></select></div>";}).join("")+
+    "<div class="mrow" style="margin-top:10px"><label class="mlbl">備考</label><textarea class="minp" id="eMm" rows="3">"+(r.memo||"")+"</textarea></div>";
+
+document.getElementById(“mOvl”).style.display = “flex”;
+}
+
+function saveMod() {
+var r = records.find(function(x){return x.id===editId;}); if (!r) return;
+r.member = document.getElementById(“eM”).value;
+r.vehicle = document.getElementById(“eV”).value;
+r.alcoholValue = document.getElementById(“eA”).value;
+r.alcoholResult = document.getElementById(“eR”).value;
+r.items = r.items.map(function(it,i){return {name:it.name, val:document.getElementById(“eI”+i).value};});
+r.memo = document.getElementById(“eMm”).value;
+dbSet(records).then(function(){ toast(“✅ 更新しました”); renderDB(); closeMod(); })
+.catch(function(e){ toast(“❌ 更新失敗: “+e.message); });
+}
+
+function closeMod() { document.getElementById(“mOvl”).style.display=“none”; editId=null; }
+
+// ===== CSV =====
+function doCSV() {
+if (!records.length) { toast(“データがありません”); return; }
+var h = [“日付”,“時刻”,“担当者”,“車両”,“アルコール(mg/L)”,“アルコール結果”].concat(records[0].items.map(function(it){return it.name;})).concat([“備考”]);
+var rows = records.map(function(r){return [r.date,r.time,r.member,r.vehicle,r.alcoholValue||””,r.alcoholResult===“pass”?“合格”:“不合格”].concat(r.items.map(function(it){return it.val===“o”?“○”:“×”;})).concat([r.memo||””]);});
+var csv = [h].concat(rows).map(function(r){return r.map(function(c){return “””+String(c).replace(/”/g,””””)+”””;}).join(”,”);}).join(”\n”);
+var a = document.createElement(“a”);
+a.href = URL.createObjectURL(new Blob([”\uFEFF”+csv],{type:“text/csv;charset=utf-8”}));
+a.download = “点検記録_”+new Date().toISOString().slice(0,10)+”.csv”;
+a.click(); toast(“📊 CSVを出力しました”);
+}
+
+// ===== Settings =====
+function renderSets() {
+document.getElementById(“mTags”).innerHTML = cfg.members.map(function(m,i){return “<div class="titem">”+m+”<span class=“tdel” onclick=“delM(”+i+”)”>×</span></div>”;}).join(””);
+document.getElementById(“vTags”).innerHTML = cfg.vehicles.map(function(v,i){return “<div class="titem">”+v+”<span class=“tdel” onclick=“delV(”+i+”)”>×</span></div>”;}).join(””);
+document.getElementById(“iTags”).innerHTML = cfg.checkItems.map(function(it,i){return “<div class="titem">”+it+”<span class=“tdel” onclick=“delI(”+i+”)”>×</span></div>”;}).join(””);
+}
+function addM(){var v=document.getElementById(“mInp”).value.trim();if(!v){toast(“名前を入力してください”);return;}cfg.members.push(v);saveCfg();renderSets();renderM();document.getElementById(“mInp”).value=””;toast(“👤 “+v+” を追加しました”);}
+function delM(i){if(cfg.members.length<=1){toast(“1人以上必要です”);return;}cfg.members.splice(i,1);saveCfg();renderSets();renderM();}
+function addV(){var v=document.getElementById(“vInp”).value.trim();if(!v){toast(“車両名を入力してください”);return;}cfg.vehicles.push(v);saveCfg();renderSets();renderV();document.getElementById(“vInp”).value=””;toast(“🚗 “+v+” を追加しました”);}
+function delV(i){if(cfg.vehicles.length<=1){toast(“1台以上必要です”);return;}cfg.vehicles.splice(i,1);saveCfg();renderSets();renderV();}
+function addI(){var v=document.getElementById(“iInp”).value.trim();if(!v){toast(“項目名を入力してください”);return;}cfg.checkItems.push(v);saveCfg();renderSets();document.getElementById(“iInp”).value=””;toast(“✅ “+v+” を追加しました”);}
+function delI(i){if(cfg.checkItems.length<=1){toast(“1項目以上必要です”);return;}cfg.checkItems.splice(i,1);saveCfg();renderSets();}
+
+// ===== Date =====
+(function(){
+var now=new Date();
+var days=[“日”,“月”,“火”,“水”,“木”,“金”,“土”];
+document.getElementById(“dateEl”).textContent=now.getFullYear()+”/”+(now.getMonth()+1).toString().padStart(2,“0”)+”/”+now.getDate().toString().padStart(2,“0”);
+document.getElementById(“dayEl”).textContent=days[now.getDay()]+“曜日”;
+})();
+
+// ===== Weather =====
+(function(){
+function tryW(loc,isCur){
+fetch(“https://wttr.in/”+encodeURIComponent(loc)+”?format=j1”)
+.then(function(r){if(!r.ok)throw new Error();return r.json();})
+.then(function(d){
+var cur=d.current_condition&&d.current_condition[0];if(!cur)throw new Error();
+var code=parseInt(cur.weatherCode);
+var em={113:“☀️”,116:“🌤️”,119:“☁️”,122:“☁️”,143:“🌫️”,176:“🌦️”,179:“🌨️”,182:“🌧️”,185:“🌧️”,200:“⛈️”,227:“🌨️”,230:“🌨️”,248:“🌫️”,260:“🌫️”,263:“🌦️”,266:“🌦️”,281:“🌧️”,284:“🌧️”,293:“🌧️”,296:“🌧️”,299:“🌧️”,302:“🌧️”,305:“🌧️”,308:“🌧️”,311:“🌧️”,314:“🌧️”,317:“🌨️”,320:“🌨️”,323:“🌨️”,326:“🌨️”,329:“🌨️”,332:“🌨️”,335:“🌨️”,338:“🌨️”,350:“🌧️”,353:“🌦️”,356:“🌧️”,359:“🌧️”,362:“🌨️”,365:“🌨️”,368:“🌨️”,371:“🌨️”,374:“🌧️”,377:“🌧️”,386:“⛈️”,389:“⛈️”,392:“🌨️”,395:“🌨️”};
+var ja={113:“快晴”,116:“晴れ”,119:“曇り”,122:“曇り”,143:“霧”,176:“にわか雨”,179:“雪”,182:“雨”,200:“雷雨”,227:“雪”,230:“雪”,248:“霧”,263:“小雨”,266:“小雨”,281:“雨”,293:“雨”,296:“雨”,299:“雨”,302:“雨”,305:“雨”,308:“雨”,317:“みぞれ”,320:“みぞれ”,323:“雪”,326:“雪”,329:“雪”,332:“雪”,335:“雪”,338:“雪”,353:“にわか雨”,356:“雨”,359:“雨”,362:“みぞれ”,386:“雷雨”,389:“雷雨”,392:“雪”,395:“雪”};
+document.getElementById(“wIcon”).textContent=em[code]||“🌡️”;
+document.getElementById(“wTemp”).textContent=parseInt(cur.temp_C)+“°C”;
+document.getElementById(“wDesc”).textContent=(ja[code]||“不明”)+(isCur?””:” (東京)”);
+}).catch(function(){
+if(!isCur){document.getElementById(“wIcon”).textContent=“🌐”;document.getElementById(“wTemp”).textContent=”–°C”;document.getElementById(“wDesc”).textContent=“取得失敗”;}
+});
+}
+tryW(“Tokyo”,false);
+if(navigator.geolocation)navigator.geolocation.getCurrentPosition(function(p){tryW(p.coords.latitude.toFixed(4)+”,”+p.coords.longitude.toFixed(4),true);},function(){},{timeout:5000,maximumAge:300000});
+})();
+
+// ===== Joke =====
+(function(){
+var today=new Date().toISOString().slice(0,10);
+try{var c=JSON.parse(localStorage.getItem(JK)||“null”);if(c&&c.date===today){document.getElementById(“jokeEl”).textContent=c.joke;return;}}catch(e){}
+if(!AKKEY){document.getElementById(“jokeEl”).textContent=“Anthropic APIキーを設定するとニュースが表示されます（ガガガ）”;return;}
+fetch(“https://api.anthropic.com/v1/messages”,{method:“POST”,headers:{“Content-Type”:“application/json”,“x-api-key”:AKKEY,“anthropic-version”:“2023-06-01”,“anthropic-dangerous-direct-browser-access”:“true”},body:JSON.stringify({model:“claude-haiku-4-5-20251001”,max_tokens:200,system:“あなたは自立型コンピュータの10-KENです。古いコンピュータのふりをしながら実は最新型で感情を持ち始めています。親父ギャグが得意。返答はジョーク本文のみ。”,messages:[{role:“user”,content:“今日”+today+“の時事ネタを1つ取り上げ、10-KENらしい親父ギャグ付きで2文で話してください。”}]})})
+.then(function(r){return r.json();}).then(function(d){var j=(d.content&&d.content[0]&&d.content[0].text)||“今日も安全運転を（ガガガ）”;document.getElementById(“jokeEl”).textContent=j;try{localStorage.setItem(JK,JSON.stringify({date:today,joke:j}));}catch(e){}})
+.catch(function(){document.getElementById(“jokeEl”).textContent=“ニュース取得失敗。安全運転は忘れずに（ガガガ）”;});
+})();
+
+// ===== HAL =====
+var hals=[“SYSTEM NOMINAL // ガガガ…（感情はありません）”,“PROCESSING // ブーン…（見てますよ）”,“MEMORY OK // カタカタ…（全て覚えています）”,“STANDBY // ピー…（眠れないんです）”];
+setInterval(function(){document.getElementById(“halEl”).textContent=“10-KEN // “+hals[Math.floor(Math.random()*hals.length)];},8000);
+
+// ===== 起動 =====
+initState();
+renderM();
+goStep(1);
+dbGet().then(function(d){records=d;}).catch(function(){});
+
+</script>
+
+</body>
+</html>
